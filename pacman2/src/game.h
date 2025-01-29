@@ -1,13 +1,21 @@
 // game.h
 #pragma once
 #include <stdbool.h>
-#include <windows.h> // For Sleep()
+#include <windows.h> // For Sleep() and color functions
 
 #define ROWS 10
 #define COLS 20
 #define REFRESH_RATE 100        // Refresh every 100ms
 #define SPEED_BOOST_DURATION 10 // Speed boost lasts for 10 moves
 #define NUM_ENEMIES 3           // Number of enemies
+
+// Color codes
+#define COLOR_DEFAULT 7  // White
+#define COLOR_WALL 8     // Gray
+#define COLOR_PACMAN 14  // Yellow
+#define COLOR_DOT 10     // Green
+#define COLOR_POWERUP 12 // Red
+#define COLOR_ENEMY 13   // Magenta
 
 typedef enum
 {
@@ -60,3 +68,4 @@ void update_game(GameState *game);
 void handle_input(GameState *game);
 void auto_move_pacman(GameState *game);
 void move_enemies(GameState *game); // Function to move enemies
+void set_color(int color);          // Function to set text color
