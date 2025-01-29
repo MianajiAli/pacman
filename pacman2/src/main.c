@@ -1,4 +1,3 @@
-// main.c
 #include "game.h"
 #include <conio.h>
 #include <stdio.h>
@@ -6,6 +5,7 @@
 int main()
 {
     GameState game;
+    game.is_running = true;
 
     // Check for saved game
     FILE *f = fopen("save.txt", "r");
@@ -23,35 +23,13 @@ int main()
         initialize_game(&game);
     }
 
-    while (1)
+    // Main game loop
+    while (game.is_running)
     {
         draw_board(&game);
-
-        if (_kbhit())
-        {
-            int ch = _getch();
-            switch (ch)
-            {
-            case 'w':
-                move_pacman(&game, 0);
-                break;
-            case 'd':
-                move_pacman(&game, 1);
-                break;
-            case 's':
-                move_pacman(&game, 2);
-                break;
-            case 'a':
-                move_pacman(&game, 3);
-                break;
-            case 'q':
-                save_game(&game);
-                return 0;
-            }
-        }
-
-        update_game(&game);  // Update game state (e.g., enemies)
-        Sleep(REFRESH_RATE); // Refresh every 100ms
+        handle_input(&game);
+        update_game(&game);
+        Sleep(REFRESH_RATE); // Control game speed
     }
 
     return 0;

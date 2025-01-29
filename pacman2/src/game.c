@@ -1,8 +1,8 @@
-// game.c
 #include "game.h"
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <conio.h> // Include this for _kbhit() and _getch()
 
 void initialize_game(GameState *game)
 {
@@ -15,8 +15,7 @@ void initialize_game(GameState *game)
                 .is_wall = (i == 0 || i == ROWS - 1 || j == 0 || j == COLS - 1),
                 .has_dot = !(i == 0 || i == ROWS - 1 || j == 0 || j == COLS - 1),
                 .has_powerup = false,
-                .has_enemy = false,
-                .visited = false};
+                .has_enemy = false};
         }
     }
 
@@ -24,7 +23,7 @@ void initialize_game(GameState *game)
     game->player = (Pacman){
         .x = 1,
         .y = 1,
-        .direction = 1,
+        .direction = DIR_RIGHT,
         .lives = 3,
         .score = 0,
         .speed_boost = 0};
@@ -72,12 +71,12 @@ void draw_board(const GameState *game)
            game->player.speed_boost);
 }
 
-void move_pacman(GameState *game, int dir)
+void move_pacman(GameState *game, Direction dir)
 {
     Pacman *p = &game->player;
     p->direction = dir;
 
-    int moves = p->speed_boost > 0 ? 2 : 1;
+    int moves = (p->speed_boost > 0) ? 2 : 1; // Double moves during speed boost
     while (moves-- > 0)
     {
         int new_x = p->x;
@@ -85,18 +84,18 @@ void move_pacman(GameState *game, int dir)
 
         switch (dir)
         {
-        case 0:
+        case DIR_UP:
             new_x--;
-            break; // Up
-        case 1:
+            break;
+        case DIR_RIGHT:
             new_y++;
-            break; // Right
-        case 2:
+            break;
+        case DIR_DOWN:
             new_x++;
-            break; // Down
-        case 3:
+            break;
+        case DIR_LEFT:
             new_y--;
-            break; // Left
+            break;
         }
 
         // Wall collision check
@@ -114,7 +113,7 @@ void move_pacman(GameState *game, int dir)
             }
             else if (current->has_powerup)
             {
-                p->speed_boost = 10;
+                p->speed_boost = SPEED_BOOST_DURATION;
                 current->has_powerup = false;
             }
         }
@@ -132,6 +131,10 @@ void save_game(const GameState *game)
         fwrite(game, sizeof(GameState), 1, f);
         fclose(f);
     }
+    else
+    {
+        printf("Error saving game!\n");
+    }
 }
 
 void load_game(GameState *game)
@@ -142,9 +145,47 @@ void load_game(GameState *game)
         fread(game, sizeof(GameState), 1, f);
         fclose(f);
     }
+    else
+    {
+        printf("Error loading game!\n");
+    }
 }
 
 void update_game(GameState *game)
 {
     // Placeholder for future updates (e.g., enemy movement)
+}
+
+void handle_input(GameState *game)
+{
+    if (_kbhit())
+    {
+        int ch = _getch();
+        switch (ch)
+        {
+        case 'w':
+            move_pacman(game, DIR_UP);
+            break;
+        case 'd':
+            move_pacman(game, DIR_RIGHT);
+            break;
+        case 's':
+            move_pacman(game, DIR_DOWN);
+            break;
+        case 'a':
+            move_pacman(game, DIR_LEFT);
+            break;
+        case 'q':
+            save_game(game);
+            game->is_running = false;
+            break;
+        }
+    }
+}
+
+void auto_move_pacman(GameState *game)
+{
+    // Randomly move Pacman in auto-play mode
+    Direction dir = rand() % 4;
+    move_pacman(game, dir);
 }
