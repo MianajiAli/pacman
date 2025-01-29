@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include <conio.h> // Include this for _kbhit() and _getch()
+#include <conio.h> // For _kbhit() and _getch()
 
 void initialize_game(GameState *game)
 {
@@ -161,6 +161,8 @@ void handle_input(GameState *game)
     if (_kbhit())
     {
         int ch = _getch();
+
+        // Handle the key press
         switch (ch)
         {
         case 'w':
@@ -180,6 +182,10 @@ void handle_input(GameState *game)
             game->is_running = false;
             break;
         }
+
+        // Clear the input buffer to prevent key press "sticking"
+        while (_kbhit())
+            _getch();
     }
 }
 
