@@ -1,3 +1,4 @@
+// game.c
 #include "game.h"
 #include <stdlib.h>
 #include <time.h>
@@ -32,7 +33,20 @@ void initialize_game(GameState *game)
     // Add powerup
     game->grid[5][5].has_powerup = true;
     game->grid[5][5].powerup_collected = false; // Ensure powerup is not collected initially
+
+    // Add enemies
+    game->enemy_count = NUM_ENEMIES;
+    game->enemies[0] = (Enemy){.x = 5, .y = 10, .direction = DIR_LEFT};
+    game->enemies[1] = (Enemy){.x = 7, .y = 15, .direction = DIR_UP};
+    game->enemies[2] = (Enemy){.x = 3, .y = 5, .direction = DIR_DOWN};
+
+    // Mark enemy positions on the grid
+    for (int i = 0; i < NUM_ENEMIES; i++)
+    {
+        game->grid[game->enemies[i].x][game->enemies[i].y].has_enemy = true;
+    }
 }
+
 void draw_board(const GameState *game)
 {
     system("cls"); // Clear screen (Windows)
@@ -46,6 +60,10 @@ void draw_board(const GameState *game)
             if (i == p->x && j == p->y)
             {
                 printf("P ");
+            }
+            else if (game->grid[i][j].has_enemy)
+            {
+                printf("E ");
             }
             else if (game->grid[i][j].is_wall)
             {
@@ -137,6 +155,64 @@ void move_pacman(GameState *game, Direction dir)
     }
 }
 
+void move_enemies(GameState *game)
+{
+    for (int i = 0; i < NUM_ENEMIES; i++)
+    {
+        Enemy *e = &game->enemies[i];
+
+        // Randomly choose a direction
+        Direction dir = rand() % 4;
+
+        int new_x = e->x;
+        int new_y = e->y;
+
+        // Update new position based on direction
+        switch (dir)
+        {
+        case DIR_UP:
+            new_x--;
+            break;
+        case DIR_RIGHT:
+            new_y++;
+            break;
+        case DIR_DOWN:
+            new_x++;
+            break;
+        case DIR_LEFT:
+            new_y--;
+            break;
+        }
+
+        // Wall collision check: Prevent movement through walls
+        if (!game->grid[new_x][new_y].is_wall)
+        {
+            // Update enemy position
+            game->grid[e->x][e->y].has_enemy = false; // Clear old position
+            e->x = new_x;
+            e->y = new_y;
+            game->grid[e->x][e->y].has_enemy = true; // Mark new position
+        }
+    }
+}
+
+void update_game(GameState *game)
+{
+    // Move enemies
+    move_enemies(game);
+
+    // Check for collisions between Pacman and enemies
+    for (int i = 0; i < NUM_ENEMIES; i++)
+    {
+        if (game->player.x == game->enemies[i].x && game->player.y == game->enemies[i].y)
+        {
+            printf("Game Over! You were caught by an enemy.\n");
+            game->is_running = false;
+            return;
+        }
+    }
+}
+
 void save_game(const GameState *game)
 {
     FILE *f = fopen("save.txt", "wb");
@@ -163,11 +239,6 @@ void load_game(GameState *game)
     {
         printf("Error loading game!\n");
     }
-}
-
-void update_game(GameState *game)
-{
-    // Placeholder for future updates (e.g., enemy movement)
 }
 
 void handle_input(GameState *game)
