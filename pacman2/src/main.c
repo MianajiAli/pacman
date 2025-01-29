@@ -1,62 +1,57 @@
-// File: main.c
-#include <stdio.h>
-#include <stdlib.h>
-#include <conio.h>
-#include <time.h>
-#include <windows.h>
+// main.c
 #include "game.h"
+#include <conio.h>
+#include <stdio.h>
 
 int main()
 {
     GameState game;
-    int input;
-    int gameRunning = 1;
-    clock_t lastMove = 0;
-    FILE *file;
 
     // Check for saved game
-    if ((file = fopen(SAVE_FILE, "r")))
+    FILE *f = fopen("save.txt", "r");
+    if (f)
     {
-        fclose(file);
-        printf("Saved game found. Load? (y/n): ");
-        input = getchar();
-        initializeGame(&game, (input != 'y' && input != 'Y'));
-        if (input == 'y' || input == 'Y')
-            loadGame(&game);
+        fclose(f);
+        printf("Load saved game? (y/n): ");
+        if (getchar() == 'y')
+            load_game(&game);
+        else
+            initialize_game(&game);
     }
     else
     {
-        initializeGame(&game, 1);
+        initialize_game(&game);
     }
 
-    while (gameRunning)
+    while (1)
     {
-        if (game.computerMode && clock() - lastMove > CLOCKS_PER_SEC)
-        {
-            computerMove(&game);
-            lastMove = clock();
-        }
+        draw_board(&game);
 
         if (_kbhit())
         {
-            input = _getch();
-            if (input == 27)
-            { // ESC key
-                printf("\nSave and quit? (y/n): ");
-                if (_getch() == 'y')
-                {
-                    saveGame(&game);
-                    gameRunning = 0;
-                }
-                continue;
+            int ch = _getch();
+            switch (ch)
+            {
+            case 'w':
+                move_pacman(&game, 0);
+                break;
+            case 'd':
+                move_pacman(&game, 1);
+                break;
+            case 's':
+                move_pacman(&game, 2);
+                break;
+            case 'a':
+                move_pacman(&game, 3);
+                break;
+            case 'q':
+                save_game(&game);
+                return 0;
             }
-            gameRunning = handleInput(&game, input);
         }
 
-        moveEnemies(&game);
-        gameRunning = !checkCollisions(&game);
-        drawGame(&game);
-        Sleep(200);
+        update_game(&game);  // Update game state (e.g., enemies)
+        Sleep(REFRESH_RATE); // Refresh every 100ms
     }
 
     return 0;

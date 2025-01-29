@@ -1,51 +1,41 @@
-// File: game.h
-#ifndef GAME_H
-#define GAME_H
+// game.h
+#pragma once
+#include <stdbool.h>
+#include <windows.h> // For Sleep()
 
-#define WIDTH 20
-#define HEIGHT 10
-#define MAX_ENEMIES 5
-#define SAVE_FILE "savegame.dat"
+#define ROWS 10
+#define COLS 20
+#define REFRESH_RATE 100 // Refresh every 100ms
 
 typedef struct
 {
-    char display;
-    int isPassable;
-    int hasDot;
-    int hasBoost;
+    bool is_wall;     // Is this cell a wall?
+    bool has_dot;     // Does it contain a dot?
+    bool has_powerup; // Does it contain $?
+    bool has_enemy;   // Is there an enemy here?
+    bool visited;     // For maze generation checks
 } Cell;
 
 typedef struct
 {
-    int x, y;
-} Position;
-
-typedef struct
-{
-    Position pos;
-    int direction;
-} Enemy;
-
-typedef struct
-{
-    Cell maze[HEIGHT][WIDTH];
-    Position pacman;
+    int x, y;      // Position
+    int direction; // 0-3 (up, right, down, left)
+    int lives;
     int score;
-    int boostCounter;
-    int level;
-    int enemyCount;
-    Enemy enemies[MAX_ENEMIES];
-    int computerMode;
+    int speed_boost; // Remaining speed boost moves
+} Pacman;
+
+typedef struct
+{
+    Cell grid[ROWS][COLS];
+    Pacman player;
+    int enemy_count;
 } GameState;
 
-void initializeGame(GameState *game, int newGame);
-void drawGame(const GameState *game);
-int handleInput(GameState *game, int input);
-void moveEnemies(GameState *game);
-int checkCollisions(GameState *game);
-void saveGame(const GameState *game);
-int loadGame(GameState *game);
-void generateRandomMaze(GameState *game);
-void computerMove(GameState *game);
-
-#endif
+// Function declarations
+void initialize_game(GameState *game);
+void draw_board(const GameState *game);
+void move_pacman(GameState *game, int dir);
+void save_game(const GameState *game);
+void load_game(GameState *game);
+void update_game(GameState *game);
