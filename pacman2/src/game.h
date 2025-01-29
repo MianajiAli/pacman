@@ -8,6 +8,7 @@
 #define REFRESH_RATE 100        // Refresh every 100ms
 #define SPEED_BOOST_DURATION 10 // Speed boost lasts for 10 moves
 #define NUM_ENEMIES 3           // Number of enemies
+#define MAX_LEVELS 3            // Maximum number of levels
 
 // Color codes
 #define COLOR_DEFAULT 7  // White
@@ -55,7 +56,8 @@ typedef struct
     Pacman player;
     Enemy enemies[NUM_ENEMIES]; // Array of enemies
     int enemy_count;
-    bool is_running; // Game state
+    bool is_running;   // Game state
+    int current_level; // Current level number
 } GameState;
 
 // Function declarations
@@ -67,5 +69,7 @@ void load_game(GameState *game);
 void update_game(GameState *game);
 void handle_input(GameState *game);
 void auto_move_pacman(GameState *game);
-void move_enemies(GameState *game); // Function to move enemies
-void set_color(int color);          // Function to set text color
+void move_enemies(GameState *game);            // Function to move enemies
+void set_color(int color);                     // Function to set text color
+void load_level(GameState *game, int level);   // Function to load a specific level
+bool is_level_complete(const GameState *game); // Check if all dots are collected

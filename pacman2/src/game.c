@@ -12,47 +12,69 @@ void set_color(int color)
     SetConsoleTextAttribute(hConsole, color);
 }
 
-void initialize_game(GameState *game)
+// Function to load a specific level
+void load_level(GameState *game, int level)
 {
-    // Define the map layout
-    char map[ROWS][COLS] = {
-        "####################",
-        "#..................#",
-        "#.###.###.###.###.#",
-        "#.#...........#...#",
-        "#.###.###.###.###.#",
-        "#..................#",
-        "#.###.###.###.###.#",
-        "#.#...........#...#",
-        "#.###.###.###.###.#",
-        "####################"};
+    // Define level maps
+    char levels[MAX_LEVELS][ROWS][COLS] = {
+        // Level 1
+        {
+            "####################",
+            "#..................#",
+            "#.###.###.###.###.#",
+            "#.#...........#...#",
+            "#.###.###.###.###.#",
+            "#..................#",
+            "#........  ........#",
+            "#.#...........#...#",
+            "#.###.###.###.###.#",
+            "####################"},
+        // Level 2
+        {
+            "####################",
+            "#..................#",
+            "#.###.###.###.###.#",
+            "#.#...#...#...#...#",
+            "#.###.###.###.###.#",
+            "#..................#",
+            "#.###.###.###.###.#",
+            "#.#...#...#...#...#",
+            "#.###.###.###.###.#",
+            "####################"},
+        // Level 3
+        {
+            "####################",
+            "#..................#",
+            "#.###.###.###.###.#",
+            "#.#.#.#.#.#.#.#.#.#",
+            "#.###.###.###.###.#",
+            "#..................#",
+            "#.###.###.###.###.#",
+            "#.#.#.#.#.#.#.#.#.#",
+            "#.###.###.###.###.#",
+            "####################"}};
 
-    // Initialize the game board based on the map
+    // Load the specified level
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLS; j++)
         {
             game->grid[i][j] = (Cell){
-                .is_wall = (map[i][j] == '#'),
-                .has_dot = (map[i][j] == '.'),
+                .is_wall = (levels[level][i][j] == '#'),
+                .has_dot = (levels[level][i][j] == '.'),
                 .has_powerup = false,
                 .has_enemy = false,
                 .powerup_collected = false};
         }
     }
 
-    // Add Pacman
-    game->player = (Pacman){
-        .x = 1,
-        .y = 1,
-        .direction = DIR_RIGHT,
-        .lives = 3,
-        .score = 0,
-        .speed_boost = 0};
+    // Reset Pacman's position
+    game->player.x = 1;
+    game->player.y = 1;
 
     // Add powerup
     game->grid[5][5].has_powerup = true;
-    game->grid[5][5].powerup_collected = false; // Ensure powerup is not collected initially
+    game->grid[5][5].powerup_collected = false;
 
     // Add enemies
     game->enemy_count = NUM_ENEMIES;
@@ -65,8 +87,68 @@ void initialize_game(GameState *game)
     {
         game->grid[game->enemies[i].x][game->enemies[i].y].has_enemy = true;
     }
+
+    // Set the current level
+    game->current_level = level;
 }
 
+// Function to check if all dots are collected
+bool is_level_complete(const GameState *game)
+{
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            if (game->grid[i][j].has_dot)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void initialize_game(GameState *game)
+{
+    // Load the first level
+    load_level(game, 0);
+}
+
+void update_game(GameState *game)
+{
+    // Move enemies
+    move_enemies(game);
+
+    // Check for collisions between Pacman and enemies
+    for (int i = 0; i < NUM_ENEMIES; i++)
+    {
+        if (game->player.x == game->enemies[i].x && game->player.y == game->enemies[i].y)
+        {
+            printf("Game Over! You were caught by an enemy.\n");
+            game->is_running = false;
+            return;
+        }
+    }
+
+    // Check if the level is complete
+    if (is_level_complete(game))
+    {
+        if (game->current_level < MAX_LEVELS - 1)
+        {
+            // Load the next level
+            load_level(game, game->current_level + 1);
+            printf("Level %d complete! Moving to level %d...\n", game->current_level, game->current_level + 1);
+        }
+        else
+        {
+            // All levels completed
+            printf("Congratulations! You completed all levels!\n");
+            game->is_running = false;
+        }
+    }
+}
+
+// Rest of the functions remain unchanged...
 void draw_board(const GameState *game)
 {
     system("cls"); // Clear screen (Windows)
@@ -221,23 +303,6 @@ void move_enemies(GameState *game)
             e->x = new_x;
             e->y = new_y;
             game->grid[e->x][e->y].has_enemy = true; // Mark new position
-        }
-    }
-}
-
-void update_game(GameState *game)
-{
-    // Move enemies
-    move_enemies(game);
-
-    // Check for collisions between Pacman and enemies
-    for (int i = 0; i < NUM_ENEMIES; i++)
-    {
-        if (game->player.x == game->enemies[i].x && game->player.y == game->enemies[i].y)
-        {
-            printf("Game Over! You were caught by an enemy.\n");
-            game->is_running = false;
-            return;
         }
     }
 }
