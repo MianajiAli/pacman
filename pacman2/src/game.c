@@ -15,7 +15,8 @@ void initialize_game(GameState *game)
                 .is_wall = (i == 0 || i == ROWS - 1 || j == 0 || j == COLS - 1),
                 .has_dot = !(i == 0 || i == ROWS - 1 || j == 0 || j == COLS - 1),
                 .has_powerup = false,
-                .has_enemy = false};
+                .has_enemy = false,
+                .powerup_collected = false}; // Initialize powerup_collected to false
         }
     }
 
@@ -30,8 +31,8 @@ void initialize_game(GameState *game)
 
     // Add powerup
     game->grid[5][5].has_powerup = true;
+    game->grid[5][5].powerup_collected = false; // Ensure powerup is not collected initially
 }
-
 void draw_board(const GameState *game)
 {
     system("cls"); // Clear screen (Windows)
@@ -77,11 +78,13 @@ void move_pacman(GameState *game, Direction dir)
     p->direction = dir;
 
     int moves = (p->speed_boost > 0) ? 2 : 1; // Double moves during speed boost
+
     while (moves-- > 0)
     {
         int new_x = p->x;
         int new_y = p->y;
 
+        // Update new position based on direction
         switch (dir)
         {
         case DIR_UP:
@@ -98,28 +101,39 @@ void move_pacman(GameState *game, Direction dir)
             break;
         }
 
-        // Wall collision check
+        // Wall collision check: Prevent movement through walls
         if (!game->grid[new_x][new_y].is_wall)
         {
-            p->x = new_x;
-            p->y = new_y;
+            // Cell where Pac-Man will move
+            Cell *current = &game->grid[new_x][new_y];
 
-            // Collect items
-            Cell *current = &game->grid[p->x][p->y];
+            // Collect dot if available
             if (current->has_dot)
             {
                 p->score += 10;
-                current->has_dot = false;
+                current->has_dot = false; // Remove dot from the grid
             }
-            else if (current->has_powerup)
+
+            // Check if there's a power-up and it has not been collected yet
+            if (current->has_powerup && !current->powerup_collected)
             {
+                // Activate speed boost
                 p->speed_boost = SPEED_BOOST_DURATION;
-                current->has_powerup = false;
+                current->powerup_collected = true;  // Mark power-up as collected
+                current->has_powerup = false;       // Remove power-up from the grid
+                printf("Speed boost activated!\n"); // Debug message
             }
+
+            // Update Pac-Man's position
+            p->x = new_x;
+            p->y = new_y;
         }
 
+        // If the speed boost is active, decrease its remaining moves
         if (p->speed_boost > 0)
+        {
             p->speed_boost--;
+        }
     }
 }
 

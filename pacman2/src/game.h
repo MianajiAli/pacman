@@ -17,10 +17,11 @@ typedef enum
 
 typedef struct
 {
-    bool is_wall;     // Is this cell a wall?
-    bool has_dot;     // Does it contain a dot?
-    bool has_powerup; // Does it contain $?
-    bool has_enemy;   // Is there an enemy here?
+    bool is_wall;
+    bool has_dot;
+    bool has_powerup;
+    bool has_enemy;
+    bool powerup_collected; // New flag to track if power-up has been collected
 } Cell;
 
 typedef struct
