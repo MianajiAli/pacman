@@ -1,9 +1,10 @@
+
+
 #include "game.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-// Function to load a level from a file
 void load_level(GameState *game, int level)
 {
     printf("Debug: Loading level %d...\n", level); // Debug message
@@ -20,7 +21,7 @@ void load_level(GameState *game, int level)
         return;
     }
 
-    // Read the file line by line
+    // Read the grid layout
     char line[COLS + 2]; // +2 for newline and null terminator
     for (int i = 0; i < ROWS; i++)
     {
@@ -35,9 +36,16 @@ void load_level(GameState *game, int level)
                 game->grid[i][j] = (Cell){
                     .is_wall = (line[j] == '#'),
                     .has_dot = (line[j] == '.'),
-                    .has_powerup = false,
+                    .has_powerup = (line[j] == '$'),
                     .has_enemy = false,
                     .powerup_collected = false};
+
+                // Set player starting position
+                if (line[j] == 'P')
+                {
+                    game->player.x = i;
+                    game->player.y = j;
+                }
             }
         }
         else
@@ -48,35 +56,33 @@ void load_level(GameState *game, int level)
         }
     }
 
+    // Read enemy positions
+    int enemy_index = 0;
+    while (fgets(line, sizeof(line), file))
+    {
+        if (strncmp(line, "E ", 2) == 0)
+        { // Check if the line starts with "E "
+            int x, y;
+            if (sscanf(line, "E %d %d", &x, &y) == 2)
+            { // Parse enemy position
+                if (enemy_index < NUM_ENEMIES)
+                {
+                    game->enemies[enemy_index] = (Enemy){.x = x, .y = y, .direction = DIR_LEFT};
+                    game->grid[x][y].has_enemy = true;
+                    enemy_index++;
+                }
+            }
+        }
+    }
+
     // Close the file
     fclose(file);
-
-    // Reset Pacman's position
-    game->player.x = 1;
-    game->player.y = 1;
-
-    // Add powerup
-    game->grid[5][5].has_powerup = true;
-    game->grid[5][5].powerup_collected = false;
-
-    // Add enemies
-    game->enemy_count = NUM_ENEMIES;
-    game->enemies[0] = (Enemy){.x = 5, .y = 10, .direction = DIR_LEFT};
-    game->enemies[1] = (Enemy){.x = 7, .y = 15, .direction = DIR_UP};
-    game->enemies[2] = (Enemy){.x = 3, .y = 5, .direction = DIR_DOWN};
-
-    // Mark enemy positions on the grid
-    for (int i = 0; i < NUM_ENEMIES; i++)
-    {
-        game->grid[game->enemies[i].x][game->enemies[i].y].has_enemy = true;
-    }
 
     // Set the current level
     game->current_level = level;
 
     printf("Debug: Level %d loaded successfully from %s.\n", level, filepath); // Debug message
 }
-
 void initialize_game(GameState *game)
 {
     printf("Debug: Initializing game...\n"); // Debug message
