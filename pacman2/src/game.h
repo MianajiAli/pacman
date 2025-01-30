@@ -1,4 +1,3 @@
-// game.h
 #pragma once
 #include <stdbool.h>
 #include <windows.h> // For Sleep() and color functions
