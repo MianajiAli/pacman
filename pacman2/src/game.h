@@ -55,8 +55,9 @@ typedef struct
     Pacman player;
     Enemy enemies[NUM_ENEMIES]; // Array of enemies
     int enemy_count;
-    bool is_running;   // Game state
-    int current_level; // Current level number
+    bool is_running;    // Game state
+    int current_level;  // Current level number
+    bool computer_mode; // Computer mode flag
 } GameState;
 
 // Function declarations

@@ -1,6 +1,8 @@
 #include "game.h"
-#include <stdio.h> // Add this line
+#include <stdio.h>
 #include <conio.h>
+#include <stdlib.h>
+#include <time.h>
 
 void move_pacman(GameState *game, Direction dir)
 {
@@ -88,6 +90,10 @@ void handle_input(GameState *game)
         case 'a':
             move_pacman(game, DIR_LEFT);
             break;
+        case 'c': // Toggle computer mode
+            game->computer_mode = !game->computer_mode;
+            printf("Computer mode %s\n", game->computer_mode ? "enabled" : "disabled");
+            break;
         case 'q':
             save_game(game);
             game->is_running = false;
@@ -98,4 +104,16 @@ void handle_input(GameState *game)
         while (_kbhit())
             _getch();
     }
+}
+
+void auto_move_pacman(GameState *game)
+{
+    // Randomly choose a direction
+    Direction dir = rand() % 4;
+
+    // Move Pac-Man in the chosen direction
+    move_pacman(game, dir);
+
+    // Print debug message
+    printf("Auto-moving Pac-Man in direction: %d\n", dir);
 }
